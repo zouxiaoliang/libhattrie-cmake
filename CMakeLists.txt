@@ -1,21 +1,30 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(libhattrie-cmake LANGUAGES CXX C)
+project(hat-trie-cmake LANGUAGES CXX C)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(HAS_THIRDPARTY_HATTRIE ON PARENT_SCOPE)
+set(EXTERNAL_INSTALL_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/external)
 
-function(libHatTrienMain)
-    set(library_root "${CMAKE_CURRENT_SOURCE_DIR}/hat-trie")
-    message(STATUS "thirdparty_libhattrie root path: ${library_root}")
+include(ExternalProject)
 
-    add_library(thirdparty_libhattrie INTERFACE)
-    target_include_directories(thirdparty_libhattrie SYSTEM INTERFACE
-      "${library_root}/include"
-    )
-endfunction()
+function(main)
+  ExternalProject_Add(
+    hat-trie
+    PREFIX ${EXTERNAL_INSTALL_LOCATION}
+    GIT_REPOSITORY https://github.com/Tessil/hat-trie.git
+    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${EXTERNAL_INSTALL_LOCATION}
+    UPDATE_DISCONNECTED TRUE
+    INSTALL_COMMAND ""
+  )
 
-libHatTrienMain()
+  add_library(thirdparty_hattrie INTERFACE)
+  add_dependencies(thirdparty_hattrie googletest)
+  target_include_directories(thirdparty_hattrie INTERFACE
+    ${EXTERNAL_INSTALL_LOCATION}/src/hat-tri/include
+  )
+endfunction(main)
+
+main()
